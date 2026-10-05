@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Адмінка — BBQ Renamax</title>
+<style>
+  :root{--ink:#241d18;--soft:#7a6f63;--line:#e5dccd;--acc:#c9680a;--ok:#1a7a2e;--err:#b0342b;--bg:#f6f1e8}
+  *{box-sizing:border-box}
+  body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.5}
+  .wrap{max-width:720px;margin:0 auto;padding:24px 16px 110px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--soft);font-size:14px;margin-bottom:20px}
+  .howto{background:#fff;border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:14px 16px;font-size:14px;margin-bottom:24px}
+  .howto b{display:block;margin-bottom:6px}
+  .howto ol{margin:0 0 0 18px;padding:0}
+  fieldset{border:1px solid var(--line);background:#fff;border-radius:10px;padding:18px;margin:0 0 20px}
+  legend{font-weight:700;padding:0 6px}
+  label{display:block;font-size:13px;color:var(--soft);margin:12px 0 4px}
+  label.chk{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--ink);margin:12px 0}
+  input[type=text],textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:6px;font:inherit}
+  textarea{min-height:70px}
+  input:focus,textarea:focus,button:focus{outline:3px solid #f3cf9f;outline-offset:1px}
+  .row{border:1px dashed var(--line);border-radius:8px;padding:4px 14px 14px;margin-top:14px;position:relative}
+  .row .del{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--err);cursor:pointer;font-size:13px}
+  .add{background:none;border:1px solid var(--acc);color:var(--acc);border-radius:6px;padding:8px 14px;margin-top:14px;cursor:pointer;font:inherit}
+  .savebar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+  .save{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:13px 34px;font:inherit;font-weight:700;cursor:pointer;font-size:15px}
+  .msg{padding:12px;border-radius:6px;margin-bottom:16px;display:none}
+  .msg.ok{display:block;background:#e6f4ea;color:var(--ok)}
+  .msg.err{display:block;background:#fbeaea;color:var(--err)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Редагування сайту</h1>
+  <p class="sub">BBQ Renamax · змініть поля та натисніть «Зберегти»</p>
+
+  <div class="howto">
+    <b>Як оновити сайт (3 кроки):</b>
+    <ol>
+      <li>Змініть потрібні поля нижче й натисніть «Зберегти» — скачається файл <code>content.json</code>.</li>
+      <li>Зайдіть у панель хостингу, знайдіть папку сайту.</li>
+      <li>Замініть там старий <code>content.json</code> на скачаний. Готово — оновіть сайт і перевірте.</li>
+    </ol>
+  </div>
+
+  <div class="msg" id="msg"></div>
+  <form id="f"></form>
+</div>
+
+<div class="savebar">
+  <button class="save" type="button" id="saveBtn">Зберегти (скачати content.json)</button>
+</div>
+
+<script>
+const SCHEMA = {
+  business: { label: 'Про заклад', type: 'group', fields: {
+    name:    { label: 'Назва', type: 'text' },
+    tagline: { label: 'Слоган', type: 'text' },
+    about:   { label: 'Короткий опис (на головному екрані)', type: 'textarea' }
+  }},
+  announcement: { label: 'Оголошення (банер угорі сайту)', type: 'group', fields: {
+    enabled: { label: 'Показувати банер', type: 'checkbox' },
+    text:    { label: 'Текст (напр. «Сьогодні працюємо до 17:00»)', type: 'text' }
+  }},
+  contacts: { label: 'Контакти', type: 'group', fields: {
+    phone:         { label: 'Телефон для дзвінка (формат +380686427777)', type: 'text' },
+    phone_display: { label: 'Телефон як показувати (напр. 068 642 77 77)', type: 'text' },
+    address:       { label: 'Адреса', type: 'text' },
+    maps_url:      { label: 'Посилання на Google Карти', type: 'text' },
+    tiktok:        { label: 'Посилання на TikTok', type: 'text' },
+    tiktok_handle: { label: 'TikTok нік (напр. @bbq.renamax)', type: 'text' }
+  }},
+  hours: { label: 'Графік роботи', type: 'list', fields: {
+    days:   { label: 'Дні', type: 'text' },
+    time:   { label: 'Години (або «Вихідний»)', type: 'text' },
+    closed: { label: 'Це вихідний', type: 'checkbox' }
+  }},
+  services: { label: 'Меню', type: 'list', fields: {
+    title: { label: 'Страва', type: 'text' },
+    text:  { label: 'Опис (на сайті зараз не показується)', type: 'textarea' },
+    price: { label: 'Ціна (напр. «650 грн/кг», можна лишити порожнім)', type: 'text' }
+  }},
+  extras: { label: 'Додатки', type: 'list', fields: {
+    title: { label: 'Назва (квас, лаваш...)', type: 'text' }
+  }}
+};
+
+let content = {};
+const form = document.getElementById('f');
+const msg = document.getElementById('msg');
+
+function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+
+function fieldHTML(name, def, val){
+  if (def.type === 'checkbox')
+    return `<label class="chk"><input type="checkbox" name="${name}" ${val ? 'checked' : ''}> ${def.label}</label>`;
+  const tag = def.type === 'textarea'
+    ? `<textarea name="${name}">${esc(val)}</textarea>`
+    : `<input type="text" name="${name}" value="${esc(val)}">`;
+  return `<label>${def.label}</label>${tag}`;
+}
+
+function rowHTML(secKey, fields, item){
+  let h = '<div class="row"><button type="button" class="del" onclick="this.parentNode.remove()">видалити</button>';
+  for (const [f, def] of Object.entries(fields))
+    h += fieldHTML(`${secKey}.${f}`, def, def.type === 'checkbox' ? !!(item||{})[f] : (item||{})[f] ?? '');
+  return h + '</div>';
+}
+
+function render(){
+  let h = '';
+  for (const [key, sec] of Object.entries(SCHEMA)){
+    h += `<fieldset data-sec="${key}"><legend>${sec.label}</legend>`;
+    if (sec.type === 'group'){
+      for (const [f, def] of Object.entries(sec.fields))
+        h += fieldHTML(`${key}.${f}`, def, def.type === 'checkbox' ? !!(content[key]||{})[f] : (content[key]||{})[f] ?? '');
+    } else {
+      h += `<div data-rows="${key}">`;
+      (content[key] || []).forEach(item => h += rowHTML(key, sec.fields, item));
+      h += `</div><button type="button" class="add" data-add="${key}">+ Додати</button>`;
+    }
+    h += '</fieldset>';
+  }
+  form.innerHTML = h;
+  form.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
+    const key = b.dataset.add;
+    b.previousElementSibling.insertAdjacentHTML('beforeend', rowHTML(key, SCHEMA[key].fields, {}));
+  }));
+}
+
+function collect(){
+  const out = JSON.parse(JSON.stringify(content)); // keep unknown keys intact
+  for (const [key, sec] of Object.entries(SCHEMA)){
+    const fs = form.querySelector(`[data-sec="${key}"]`);
+    if (sec.type === 'group'){
+      out[key] = out[key] || {};
+      for (const [f, def] of Object.entries(sec.fields)){
+        const el = fs.querySelector(`[name="${key}.${f}"]`);
+        out[key][f] = def.type === 'checkbox' ? el.checked : el.value.trim();
+      }
+    } else {
+      out[key] = [...fs.querySelectorAll('.row')].map(row => {
+        const item = {};
+        for (const [f, def] of Object.entries(sec.fields)){
+          const el = row.querySelector(`[name="${key}.${f}"]`);
+          item[f] = def.type === 'checkbox' ? el.checked : el.value.trim();
+        }
+        return item;
+      }).filter(item => Object.values(item).some(v => v !== '' && v !== false));
+    }
+  }
+  return out;
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  try {
+    const data = collect();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'content.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    msg.className = 'msg ok';
+    msg.textContent = 'Файл content.json скачано. Тепер замініть ним старий файл на хостингу (кроки вгорі сторінки).';
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = 'Не вдалося зібрати дані: ' + e.message;
+  }
+  window.scrollTo({ top: 0 });
+});
+
+fetch('content.json?v=' + Date.now())
+  .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+  .then(c => { content = c; render(); })
+  .catch(() => {
+    msg.className = 'msg err';
+    msg.textContent = 'Не вдалося завантажити content.json. Відкрийте адмінку з сайту (через хостинг), а не як локальний файл.';
+    render();
+  });
+</script>
+</body>
+</html>
