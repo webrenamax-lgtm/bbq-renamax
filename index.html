@@ -157,7 +157,102 @@
   footer{background:var(--black);color:var(--mute);border-top:1px solid var(--line);font-size:13.5px;padding:22px 0}
   .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
+  [hidden]{display:none!important}
+
+  /* ===== онлайн-замовлення (order.js) ===== */
+  body.ordering .dish{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;column-gap:12px}
+  body.ordering .dish .dots{transform:none}
+  .ctl{display:flex;justify-content:flex-end}
+  .add{width:40px;height:40px;padding:0;border:1.5px solid var(--orange);background:transparent;color:var(--orange);font:700 22px/1 'Inter',sans-serif;cursor:pointer;transform:skewX(-6deg)}
+  .add:hover{background:var(--orange);color:var(--black)}
+  .step{display:inline-flex;align-items:stretch;background:var(--orange);color:var(--black);transform:skewX(-6deg)}
+  .step button{width:38px;height:40px;padding:0;border:0;background:transparent;color:inherit;font:700 20px/1 'Inter',sans-serif;cursor:pointer}
+  .step button:hover{background:rgba(0,0,0,.15)}
+  .step button:focus-visible{outline:3px solid var(--black);outline-offset:-4px}
+  .add span,.step button span,.step .q{display:inline-block;transform:skewX(6deg)}
+  .step .q{align-self:center;min-width:58px;text-align:center;font:600 15px/1 'Oswald',sans-serif;letter-spacing:.02em;white-space:nowrap}
+  @media(max-width:500px){
+    body.ordering .dish{grid-template-columns:1fr auto;grid-template-areas:"t c" "p c";row-gap:2px}
+    body.ordering .dish h3{grid-area:t}
+    body.ordering .dish .price{grid-area:p}
+    body.ordering .dish .dots{display:none}
+    body.ordering .dish .ctl{grid-area:c}
+  }
+
+  .cartbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--orange);color:var(--black);box-shadow:0 -12px 32px rgba(0,0,0,.5)}
+  .cb-in{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:11px;padding-bottom:11px}
+  .cb-info{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+  .cb-info b{font-family:'Oswald',sans-serif;font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.03em}
+  .cb-info span{font-size:14px;font-weight:700}
+  .cb-go{flex:none;background:var(--black);color:var(--chalk);border:0;padding:14px 24px;font-family:'Oswald',sans-serif;font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;transform:skewX(-6deg)}
+  .cb-go span{display:inline-block;transform:skewX(6deg)}
+  .cb-go:hover{color:var(--orange)}
+  .cartbar :focus-visible{outline-color:var(--black)}
+  body.has-cart{padding-bottom:72px}
+
+  html.modal-open{overflow:hidden}
+  #order{padding:0;border:0;border-top:3px solid var(--orange);background:var(--coal);color:var(--chalk);width:min(560px,calc(100% - 32px));max-width:none;max-height:min(90vh,880px);margin:auto;overflow:hidden}
+  #order[open]{display:flex;flex-direction:column}
+  #order::backdrop{background:rgba(8,6,5,.8)}
+  #od-form{display:flex;flex-direction:column;min-height:0;flex:1}
+  .od-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px 12px;border-bottom:1px solid var(--line)}
+  .od-title{font-family:'Pattaya',cursive;font-weight:400;font-size:32px;line-height:1.1;color:var(--orange);transform:rotate(-1.5deg);text-shadow:2px 2px 0 rgba(0,0,0,.5)}
+  .od-x{flex:none;width:40px;height:40px;border:1px solid var(--line);background:transparent;color:var(--chalk);font-size:26px;line-height:1;cursor:pointer}
+  .od-x:hover{border-color:var(--orange);color:var(--orange)}
+  .od-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:4px 20px 20px}
+  .od-demo{margin-top:12px;border:1px dashed var(--orange);color:var(--orange);font-size:13px;font-weight:700;padding:8px 12px}
+  .od-list{list-style:none}
+  .od-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .od-it{min-width:0}
+  .od-it b{display:block;font-family:'Oswald',sans-serif;font-weight:500;font-size:16px;line-height:1.25;text-transform:uppercase;letter-spacing:.03em}
+  .od-it small{display:block;margin-top:2px;font-size:13px;color:var(--mute)}
+  .od-empty{color:var(--mute)}
+  .od-empty a{color:var(--orange)}
+  .od-sec{display:block;margin:22px 0 4px;padding:0;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--orange)}
+  .od-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:18px;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.04em}
+  .od-total b{font-size:26px;color:var(--orange)}
+  .od-note{margin-top:4px;font-size:13px;color:var(--mute)}
+  .od-when{border:0;min-width:0;margin-top:26px}
+  .od-when legend.od-sec{margin:0 0 10px}
+  .od-closed{font-size:14px;margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chips label{position:relative;cursor:pointer}
+  .chips input{position:absolute;opacity:0;width:1px;height:1px}
+  .chips span{display:inline-block;border:1.5px solid var(--line);padding:9px 14px;font-size:14px;font-weight:600}
+  .chips label:hover span{border-color:var(--orange)}
+  .chips input:checked+span{background:var(--orange);border-color:var(--orange);color:var(--black)}
+  .chips input:focus-visible+span{outline:3px solid var(--orange);outline-offset:2px}
+  .od-f{display:block;margin:16px 0 6px;font-size:13px;font-weight:600;color:var(--mute)}
+  .od-f i{font-style:normal;font-weight:500}
+  .od-input{display:block;width:100%;background:var(--black);border:1px solid var(--line);border-radius:0;color:var(--chalk);font:500 16px/1.3 'Inter',sans-serif;padding:12px 13px}
+  .od-input:focus{outline:2px solid var(--orange);outline-offset:0;border-color:var(--orange)}
+  .od-input[aria-invalid="true"]{border-color:var(--orange-hot);box-shadow:0 0 0 1px var(--orange-hot)}
+  textarea.od-input{resize:vertical;min-height:64px}
+  #od-time{margin-top:10px;max-width:180px;color-scheme:dark}
+  .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  .od-err{margin-top:16px;padding:10px 12px;border-left:3px solid var(--orange);background:rgba(242,99,34,.12);font-size:14px}
+  .od-err a{color:var(--orange);font-weight:800;white-space:nowrap}
+  .od-foot{padding:14px 20px 16px;border-top:1px solid var(--line);background:var(--coal)}
+  .od-send{width:100%;border:0;background:var(--orange);color:var(--black);padding:17px;font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer}
+  .od-send:hover{background:var(--chalk)}
+  .od-send:disabled{opacity:.55;cursor:not-allowed;background:var(--orange)}
+  .od-legal{margin-top:8px;font-size:12px;color:var(--mute);text-align:center}
+  .od-done{overflow:auto;padding:36px 22px 28px;text-align:center}
+  .od-thanks{font-family:'Pattaya',cursive;font-weight:400;font-size:54px;line-height:1.1;color:var(--orange);transform:rotate(-2deg);text-shadow:3px 3px 0 rgba(0,0,0,.5);outline:none}
+  .od-done p{margin-top:14px;font-size:16px}
+  .od-done p b{font-family:'Oswald',sans-serif;font-size:20px;letter-spacing:.05em;color:var(--orange)}
+  .od-done .od-cap{text-align:left;font-size:13px;color:var(--mute);margin-top:22px}
+  .od-preview{margin-top:8px;text-align:left;white-space:pre-wrap;background:var(--black);border:1px solid var(--line);padding:14px;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--chalk)}
+  .od-done-act{margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  button.btn{border:0;cursor:pointer}
+  button.btn-g{border:2px solid var(--line);background:transparent}
+  @media(max-width:600px){
+    #order{width:100%;max-height:92vh;max-height:92dvh;margin:auto 0 0}
+    .od-title{font-size:28px}
+  }
+
   @media print{
+    .cartbar,#order{display:none!important}
     header,.hero,.menu,.why,.tiktok,footer{display:none}
     .contacts{background:#fff;color:#000}
     .card{border:1px solid #000;background:#fff}
@@ -189,8 +284,10 @@
         <h1 class="disp"><span class="top">Смачне м'ясо —</span> <span class="o">гарячі емоції</span></h1>
         <p class="sub" data-key="business.about">Коптимо та смажимо м'ясо в бочці-смокері на живому вогні просто при трасі. Подзвоніть наперед — приготуємо до вашого приїзду, заберіть гарячим з собою.</p>
         <div class="hero-actions">
-          <a class="btn btn-o" data-href="tel:{contacts.phone}" href="tel:+380686427777"><em>Замовити наперед</em></a>
-          <a class="btn btn-g" href="#menu"><em>Меню</em></a>
+          <a class="btn btn-o" href="#menu" data-order-on hidden><em>Замовити онлайн</em></a>
+          <a class="btn btn-g" data-href="tel:{contacts.phone}" href="tel:+380686427777" data-order-on hidden><em>Подзвонити</em></a>
+          <a class="btn btn-o" data-href="tel:{contacts.phone}" href="tel:+380686427777" data-order-off><em>Замовити наперед</em></a>
+          <a class="btn btn-g" href="#menu" data-order-off><em>Меню</em></a>
         </div>
         <p class="facts"><span>Щодня <b>10:00–19:00</b></span><span>З собою · гарячим</span><span>Місце для фур і авто</span></p>
       </div>
@@ -200,34 +297,35 @@
   <section class="menu" id="menu">
     <div class="wrap">
       <h2><span class="mark"><em>Меню</em></span></h2>
-      <p class="lead">Ціни — за кілограм. Подзвоніть за 30–40 хвилин до приїзду, щоб забрати гарячим без очікування.</p>
+      <p class="lead" data-order-text="Ціни — за кілограм. Тисніть «+» біля страви, оберіть вагу й оформіть замовлення — приготуємо до вашого приїзду.">Ціни — за кілограм. Подзвоніть за 30–40 хвилин до приїзду, щоб забрати гарячим без очікування.</p>
       <div class="menu-grid" data-list="services">
         <template>
           <div class="dish"><h3>{title}</h3><span class="dots"></span><span class="price">{price}</span></div>
         </template>
         <div class="dish"><h3>Ребро м'ясне</h3><span class="dots"></span><span class="price">650 грн/кг</span></div>
-        <div class="dish"><h3>Полоска</h3><span class="dots"></span><span class="price">500 грн/кг</span></div>
+        <div class="dish"><h3>Полоска</h3><span class="dots"></span><span class="price">550 грн/кг</span></div>
         <div class="dish"><h3>Шия</h3><span class="dots"></span><span class="price">650 грн/кг</span></div>
         <div class="dish"><h3>Рулька</h3><span class="dots"></span><span class="price">500 грн/кг</span></div>
-        <div class="dish"><h3>Шпондер</h3><span class="dots"></span><span class="price">500 грн/кг</span></div>
-        <div class="dish"><h3>Шашлик свинний</h3><span class="dots"></span><span class="price">750 грн/кг</span></div>
-        <div class="dish"><h3>Ковбаса</h3><span class="dots"></span><span class="price">500 грн/кг</span></div>
+        <div class="dish"><h3>Шпондер</h3><span class="dots"></span><span class="price">550 грн/кг</span></div>
+        <div class="dish"><h3>Ковбаса</h3><span class="dots"></span><span class="price">600 грн/кг</span></div>
         <div class="dish"><h3>Курка</h3><span class="dots"></span><span class="price">350 грн/кг</span></div>
         <div class="dish"><h3>Шашлик курячий</h3><span class="dots"></span><span class="price">600 грн/кг</span></div>
         <div class="dish"><h3>Стегно індика</h3><span class="dots"></span><span class="price">650 грн/кг</span></div>
-        <div class="dish"><h3>Крило індика</h3><span class="dots"></span><span class="price">500 грн/кг</span></div>
         <div class="dish"><h3>Овочі гриль</h3><span class="dots"></span><span class="price">450 грн/кг</span></div>
         <div class="dish"><h3>Картопля</h3><span class="dots"></span><span class="price">300 грн/кг</span></div>
+        <div class="dish"><h3>Шашлик свинний</h3><span class="dots"></span><span class="price">750 грн/кг</span></div>
+        <div class="dish"><h3>Курка ціла</h3><span class="dots"></span><span class="price">350 грн/кг</span></div>
+        <div class="dish"><h3>Четвертина</h3><span class="dots"></span><span class="price">350 грн/кг</span></div>
+        <div class="dish"><h3>Гарячі рідкі страви</h3><span class="dots"></span><span class="price">150 грн/кг</span></div>
+        <div class="dish"><h3>Кабаноси Замачав</h3><span class="dots"></span><span class="price">850 грн/кг</span></div>
       </div>
       <div class="extras">
         <h3>Додатки</h3>
         <div class="extras-row" data-list="extras">
           <template><span class="chip"><em>{title}</em></span></template>
-          <span class="chip"><em>Квас</em></span>
-          <span class="chip"><em>Соуси</em></span>
-          <span class="chip"><em>Лаваш</em></span>
-          <span class="chip"><em>Огірки квашені</em></span>
-          <span class="chip"><em>Помідори квашені</em></span>
+          <span class="chip"><em>Соуси 100 гр - 50 грн</em></span>
+          <span class="chip"><em>Соус сакартвело - 150 грн</em></span>
+          <span class="chip"><em>Соус Замачав - 350 грн</em></span>
         </div>
       </div>
       <p class="menu-note">Наявність позицій залежить від дня — уточнюйте за телефоном.</p>
@@ -244,7 +342,7 @@
         </div>
         <div class="why-card">
           <h3>Замовлення наперед</h3>
-          <p>Їдете трасою Київ–Чоп — подзвоніть за 30–40 хвилин. На 339-му км на вас уже чекатиме гаряче.</p>
+          <p data-order-text="Їдете трасою Київ–Чоп — замовте на сайті або подзвоніть за 30–40 хвилин. На 339-му км на вас уже чекатиме гаряче.">Їдете трасою Київ–Чоп — подзвоніть за 30–40 хвилин. На 339-му км на вас уже чекатиме гаряче.</p>
         </div>
         <div class="why-card">
           <h3>Зручна зупинка</h3>
@@ -292,6 +390,70 @@
   </div>
 </footer>
 
-<script src="content.js"></script>
+<div class="cartbar" id="cartbar" hidden>
+  <div class="wrap cb-in">
+    <div class="cb-info" aria-live="polite"><b id="cb-count">0 позицій</b><span id="cb-sum"></span></div>
+    <button type="button" class="cb-go" id="cb-open"><span>Оформити</span></button>
+  </div>
+</div>
+
+<dialog id="order" aria-labelledby="od-title">
+  <form id="od-form" novalidate>
+    <div class="od-head">
+      <h2 id="od-title" class="od-title">Ваше замовлення</h2>
+      <button type="button" class="od-x" data-close aria-label="Закрити">×</button>
+    </div>
+    <div class="od-body">
+      <p class="od-demo" id="od-demo" hidden>Демо-режим: замовлення нікуди не надсилається</p>
+      <ul class="od-list" id="od-items"></ul>
+      <div id="od-extras-wrap">
+        <h3 class="od-sec">Додатки</h3>
+        <ul class="od-list" id="od-extras"></ul>
+      </div>
+      <p class="od-total"><span>Орієнтовно</span><b id="od-sum">0 грн</b></p>
+      <p class="od-note" data-key="order.note">М'ясо зважуємо при видачі, тож сума орієнтовна. Після замовлення передзвонимо для підтвердження.</p>
+
+      <fieldset class="od-when">
+        <legend class="od-sec">Коли заберете?</legend>
+        <p class="od-closed" id="od-closed" hidden></p>
+        <div class="chips" id="od-chips">
+          <label><input type="radio" name="when" value="asap" checked><span>Якнайшвидше</span></label>
+          <label><input type="radio" name="when" value="30"><span>Через 30 хв</span></label>
+          <label><input type="radio" name="when" value="60"><span>Через 1 год</span></label>
+          <label><input type="radio" name="when" value="time"><span>На час</span></label>
+        </div>
+        <input type="time" class="od-input" id="od-time" aria-label="Час, коли заберете" hidden>
+      </fieldset>
+
+      <label class="od-f" for="od-name">Ім'я</label>
+      <input class="od-input" id="od-name" autocomplete="name" maxlength="60" required>
+      <label class="od-f" for="od-phone">Телефон</label>
+      <input class="od-input" id="od-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="+380 __ ___ __ __" required>
+      <label class="od-f" for="od-comment">Коментар <i>— необов'язково</i></label>
+      <textarea class="od-input" id="od-comment" rows="2" maxlength="500" placeholder="Напр.: без цибулі, ребро шматком"></textarea>
+      <div class="hp" aria-hidden="true"><input id="od-hp" name="company_site" tabindex="-1" autocomplete="off"></div>
+      <p class="od-err" id="od-err" role="alert" hidden></p>
+    </div>
+    <div class="od-foot">
+      <button type="submit" class="od-send" id="od-send">Надіслати замовлення</button>
+      <p class="od-legal">Ім'я й телефон потрібні лише, щоб підтвердити замовлення.</p>
+    </div>
+  </form>
+  <div class="od-done" id="od-done" hidden>
+    <h2 class="od-thanks" tabindex="-1">Дякуємо!</h2>
+    <p>Замовлення <b id="od-num"></b> прийнято. Найближчим часом передзвонимо для підтвердження.</p>
+    <div id="od-preview-wrap" hidden>
+      <p class="od-cap">Демо: так замовлення побачить власник у Telegram</p>
+      <pre class="od-preview" id="od-preview"></pre>
+    </div>
+    <div class="od-done-act">
+      <a class="btn btn-g" data-href="tel:{contacts.phone}" href="tel:+380686427777"><em>Подзвонити нам</em></a>
+      <button type="button" class="btn btn-o" data-close><em>Готово</em></button>
+    </div>
+  </div>
+</dialog>
+
+<script src="content.js?v=2"></script>
+<script src="order.js?v=1"></script>
 </body>
 </html>

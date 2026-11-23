@@ -65,6 +65,11 @@ const SCHEMA = {
     enabled: { label: 'Показувати банер', type: 'checkbox' },
     text:    { label: 'Текст (напр. «Сьогодні працюємо до 17:00»)', type: 'text' }
   }},
+  order: { label: 'Онлайн-замовлення', type: 'group', fields: {
+    enabled:  { label: 'Приймати замовлення на сайті (зніміть галочку, щоб тимчасово вимкнути)', type: 'checkbox' },
+    note:     { label: 'Примітка у формі замовлення', type: 'textarea' },
+    endpoint: { label: 'Адреса сервера замовлень — налаштовує розробник, не змінюйте', type: 'text' }
+  }},
   contacts: { label: 'Контакти', type: 'group', fields: {
     phone:         { label: 'Телефон для дзвінка (формат +380686427777)', type: 'text' },
     phone_display: { label: 'Телефон як показувати (напр. 068 642 77 77)', type: 'text' },

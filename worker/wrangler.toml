@@ -1,0 +1,12 @@
+# Деплой з командного рядка (альтернатива вставці коду в дашборді Cloudflare):
+#   cd worker
+#   npx wrangler login
+#   npx wrangler deploy
+#   npx wrangler secret put BOT_TOKEN
+#   npx wrangler secret put CHAT_ID
+name = "bbq-renamax-orders"
+main = "order-relay.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://webrenamax-lgtm.github.io"
