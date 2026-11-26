@@ -129,7 +129,7 @@
   ],
   "order": {
     "enabled": true,
-    "endpoint": "",
+    "endpoint": "https://bbq-renamax-orders.web-renamax.workers.dev/",
     "note": "М'ясо зважуємо при видачі, тож сума орієнтовна. Після замовлення передзвонимо для підтвердження.",
     "step_kg": 0.5
   }
