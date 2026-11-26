@@ -15,6 +15,13 @@
         const v = get(el.dataset.key);
         if (v != null && v !== '') el.textContent = v;
       });
+      // text templates: <span data-tpl="Доставка {delivery.area} — {delivery.price}">…</span>
+      document.querySelectorAll('[data-tpl]').forEach(el => {
+        const v = fill(el.dataset.tpl);
+        if (v.trim()) el.textContent = v;
+      });
+      // show only when a flag is on: <div data-show="delivery.enabled">…</div>
+      document.querySelectorAll('[data-show]').forEach(el => { el.hidden = !get(el.dataset.show); });
       document.querySelectorAll('[data-href]').forEach(el => el.setAttribute('href', fill(el.dataset.href)));
       document.querySelectorAll('[data-src]').forEach(el => el.setAttribute('src', fill(el.dataset.src)));
 

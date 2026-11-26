@@ -65,6 +65,11 @@ const SCHEMA = {
     enabled: { label: 'Показувати банер', type: 'checkbox' },
     text:    { label: 'Текст (напр. «Сьогодні працюємо до 17:00»)', type: 'text' }
   }},
+  delivery: { label: 'Доставка', type: 'group', fields: {
+    enabled: { label: 'Є доставка (зніміть галочку — зникне з сайту й форми замовлення)', type: 'checkbox' },
+    area:    { label: 'Де доставляємо (напр. «по місту», «по Рівному»)', type: 'text' },
+    price:   { label: 'Вартість доставки (напр. «200 грн»)', type: 'text' }
+  }},
   order: { label: 'Онлайн-замовлення', type: 'group', fields: {
     enabled:  { label: 'Приймати замовлення на сайті (зніміть галочку, щоб тимчасово вимкнути)', type: 'checkbox' },
     note:     { label: 'Примітка у формі замовлення', type: 'textarea' },

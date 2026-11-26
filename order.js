@@ -47,6 +47,11 @@
   let sending = false;
   let mode = 'open';
   let shop = { open: 600, close: 1140 };
+  let dcfg = {}; // content.json → "delivery": { enabled, area, price }
+  const deliveryOn = () => !!dcfg.enabled;
+  const deliveryPrice = () => priceOf(dcfg.price);
+  const getMode = () => (deliveryOn() && ($('#od-mode input[name="mode"]:checked') || {}).value === 'delivery' ? 'delivery' : 'pickup');
+  const fee = () => (getMode() === 'delivery' ? deliveryPrice() : 0);
   const saved = ls.get(KEY_CART) || {};
   let cart = saved.items && typeof saved.items === 'object' ? saved.items : {};      // назва → { qty, unit, price }
   let extras = saved.extras && typeof saved.extras === 'object' ? saved.extras : {}; // назва → кількість
@@ -108,8 +113,24 @@
       const sub = q && p ? `<small>≈ ${money(p * q)} грн</small>` : '';
       return `<li><div class="od-it"><b>${esc(t)}</b>${sub}</div>${control('extra', t, q, q + ' шт')}</li>`;
     }).join('');
-    $('#od-sum').textContent = `${money(total())} грн`;
+    $('#od-fee-row').hidden = !fee();
+    $('#od-fee').textContent = `${money(fee())} грн`;
+    $('#od-sum').textContent = `${money(total() + fee())} грн`;
     $('#od-send').disabled = sending || !titles.length;
+  }
+
+  /* ---------- самовивіз / доставка ---------- */
+  function setupMode() {
+    $('#od-mode').hidden = !deliveryOn();
+    const p = deliveryPrice();
+    $('#od-mode-del').textContent = p ? `Доставка · ${money(p)} грн` : 'Доставка';
+    const isDel = getMode() === 'delivery';
+    $('#od-addr-wrap').hidden = !isDel;
+    $('#od-mode-hint').textContent = isDel
+      ? `Доставка ${dcfg.area || 'по місту'}${p ? ` — ${money(p)} грн` : ''}. Привеземо гарячим.`
+      : 'Передзамовлення: приготуємо до вашого приїзду — заберете гарячим без очікування.';
+    $('#od-when-legend').textContent = isDel ? 'Коли доставити?' : 'Коли заберете?';
+    $('#od-time').setAttribute('aria-label', isDel ? 'Час доставки' : 'Час, коли заберете');
   }
 
   function commit() { save(); renderRows(); renderBar(); if (dlg.open) renderDialog(); }
@@ -140,6 +161,86 @@
     if (el) el.focus({ preventScroll: true });
   }
 
+  /* ---------- телефон: маска +380 XX XXX XX XX і перевірка довжини ---------- */
+  // Український номер приймаємо в будь-якому вигляді (067…, 67…, 380…, +38 (067)…) → «+380 67 123 45 67», рівно 9 цифр після +380.
+  // Іноземний — з «+» і кодом країни (траса міжнародна): 10–15 цифр, без форматування.
+  function phoneParts(v) {
+    const s = String(v || '').trim();
+    const d = s.replace(/\D/g, '');
+    if (!d) return { d, empty: true };
+    if (d.length < 3 && '380'.startsWith(d)) return { d, partial: true }; // людина саме набирає «+3», «+38»
+    if (s.startsWith('+') && !d.startsWith('380')) return { d: d.slice(0, 15), intl: true };
+    let n = d.startsWith('380') ? d.slice(3) : d;
+    if (n.startsWith('0')) n = n.slice(1);
+    return { d, national: n.slice(0, 9) };
+  }
+  function formatPhone(v) {
+    const s = String(v || '').trim();
+    const p = phoneParts(s);
+    if (p.empty) return s.startsWith('+') ? '+' : '';
+    if (p.partial) return (s.startsWith('+') ? '+' : '') + p.d;
+    if (p.intl) return '+' + p.d;
+    const n = p.national;
+    return '+380 ' + [n.slice(0, 2), n.slice(2, 5), n.slice(5, 7), n.slice(7, 9)].filter(Boolean).join(' ');
+  }
+  function phoneCheck(v) {
+    const p = phoneParts(v);
+    if (p.empty || p.partial || (p.national !== undefined && !p.national.length)) return { ok: false, empty: true };
+    if (p.intl) return { ok: p.d.length >= 10 && p.d.length <= 15, intl: true };
+    return { ok: p.national.length === 9, count: p.national.length };
+  }
+  // курсор лишається перед тими самими цифрами, що й до форматування
+  function caretBeforeLast(el, k) {
+    const v = el.value;
+    let i = v.length;
+    if (k > 0) {
+      let c = 0;
+      for (i = v.length; i > 0; i--) if (/\d/.test(v[i - 1]) && ++c === k) { i -= 1; break; }
+    }
+    try { el.setSelectionRange(i, i); } catch (e) { /* поле не у фокусі */ }
+  }
+  function phoneMark(bad) {
+    const ph = $('#od-phone');
+    $('#od-phone-hint').classList.toggle('bad', bad);
+    if (bad) ph.setAttribute('aria-invalid', 'true'); else ph.removeAttribute('aria-invalid');
+  }
+  function wirePhone() {
+    const ph = $('#od-phone');
+    ph.addEventListener('input', () => {
+      const end = ph.selectionEnd == null ? ph.value.length : ph.selectionEnd;
+      const k = ph.value.slice(end).replace(/\D/g, '').length;
+      const f = formatPhone(ph.value);
+      if (f !== ph.value) { ph.value = f; caretBeforeLast(ph, k); }
+      if (phoneCheck(ph.value).ok) phoneMark(false);
+    });
+    // Backspace перед пробілом стирає попередню цифру; префікс +380 захищений, але «+380 » стирається повністю
+    ph.addEventListener('beforeinput', (e) => {
+      const t = e.inputType || '';
+      if (!t.startsWith('delete')) return;
+      const v = ph.value;
+      const s = ph.selectionStart;
+      const en = ph.selectionEnd;
+      const p = phoneParts(v);
+      if (p.national === undefined) return; // порожньо або іноземний номер — звичайне видалення
+      if (s !== en) { if (s < 5 && en < v.length) e.preventDefault(); return; }
+      if (t !== 'deleteContentBackward') return;
+      e.preventDefault();
+      if (!p.national.length) { ph.value = ''; return; }
+      let i = s - 1;
+      while (i >= 5 && !/\d/.test(v[i])) i--;
+      if (i < 5) return;
+      const k = v.slice(s).replace(/\D/g, '').length;
+      ph.value = formatPhone(v.slice(0, i) + v.slice(i + 1));
+      caretBeforeLast(ph, k);
+      ph.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    ph.addEventListener('blur', () => {
+      const c = phoneCheck(ph.value);
+      if (c.empty) ph.value = '';
+      phoneMark(!c.empty && !c.ok);
+    });
+  }
+
   /* ---------- коли забере ---------- */
   function setupWhen() {
     const n = nowMin();
@@ -152,9 +253,10 @@
     if (mode === 'open') {
       chips.hidden = false;
       note.hidden = true;
+      const isDel = getMode() === 'delivery'; // за 30 хв доставку не встигнути — цей варіант ховаємо
       $$('input[name="when"]', chips).forEach((r) => {
         const m = parseInt(r.value, 10);
-        if (m) r.closest('label').hidden = n + m > shop.close;
+        if (m) r.closest('label').hidden = n + m > shop.close || (isDel && m < 60);
       });
       let cur = $('input[name="when"]:checked', chips);
       if (!cur || cur.closest('label').hidden) { cur = $('input[value="asap"]', chips); cur.checked = true; }
@@ -187,6 +289,7 @@
   /* ---------- перевірка й відправка ---------- */
   function validate() {
     if (!Object.keys(cart).length) return ['Кошик порожній — додайте страви з меню.'];
+    if (getMode() === 'delivery' && $('#od-addr').value.trim().length < 5) return ['Вкажіть адресу доставки.', '#od-addr'];
     if (needTime()) {
       const m = toMin($('#od-time').value);
       if (m == null) return ['Вкажіть час, коли заберете замовлення.', '#od-time'];
@@ -194,8 +297,13 @@
       if (mode === 'open' && m < nowMin()) return ['Цей час уже минув — оберіть пізніший.', '#od-time'];
     }
     if ($('#od-name').value.trim().length < 2) return ["Вкажіть, як до вас звертатися.", '#od-name'];
-    const d = $('#od-phone').value.replace(/\D/g, '');
-    if (d.length < 9 || d.length > 15) return ['Перевірте номер телефону — нам потрібно вам передзвонити.', '#od-phone'];
+    const pc = phoneCheck($('#od-phone').value);
+    if (!pc.ok) {
+      phoneMark(!pc.empty);
+      return [pc.empty ? 'Вкажіть номер телефону — нам потрібно вам передзвонити.'
+        : pc.intl ? 'Перевірте номер: потрібно 10–15 цифр разом із кодом країни.'
+        : `Номер неповний: після +380 потрібно 9 цифр, а введено ${pc.count}.`, '#od-phone'];
+    }
     return null;
   }
 
@@ -203,6 +311,9 @@
     return {
       items: Object.entries(cart).map(([title, it]) => ({ title, qty: it.qty, unit: it.unit, price: it.price || 0 })),
       extras: Object.entries(extras).map(([title, qty]) => ({ title, qty, price: grn(title) })),
+      mode: getMode(),
+      address: getMode() === 'delivery' ? $('#od-addr').value.trim() : '',
+      delivery_price: fee(),
       when: whenText(),
       name: $('#od-name').value.trim(),
       phone: $('#od-phone').value.trim(),
@@ -221,6 +332,7 @@
     const box = $('#od-err');
     box.innerHTML = html;
     box.hidden = false;
+    box.dataset.field = field || '';
     $$('[aria-invalid]', form).forEach((el) => el.removeAttribute('aria-invalid'));
     if (field) { const el = $(field); el.setAttribute('aria-invalid', 'true'); el.focus(); }
     else box.scrollIntoView({ block: 'nearest' });
@@ -243,6 +355,7 @@
     name: ["Вкажіть, як до вас звертатися.", '#od-name'],
     phone: ['Перевірте номер телефону.', '#od-phone'],
     items: ['Кошик порожній — додайте страви з меню.'],
+    address: ['Вкажіть адресу доставки.', '#od-addr'],
   };
   const SERVER_ERR = { rate: 'Забагато замовлень за короткий час.', too_fast: 'Не вдалося надіслати — натисніть ще раз.' };
 
@@ -285,7 +398,7 @@
   }
 
   function success(id, data) {
-    ls.set(KEY_ME, { name: data.name, phone: data.phone });
+    ls.set(KEY_ME, { name: data.name, phone: data.phone, address: data.address || (ls.get(KEY_ME) || {}).address || '' });
     cart = {};
     extras = {};
     save();
@@ -304,7 +417,8 @@
 
   // у демо-режимі показуємо, як замовлення виглядатиме в Telegram (той самий формат, що й у worker/)
   function preview(d, id) {
-    const L = [`🔥 Нове замовлення #${id}`, ''];
+    const isDel = d.mode === 'delivery';
+    const L = [`🔥 Нове замовлення #${id} — ${isDel ? '🚚 доставка' : '🚶 самовивіз'}`, ''];
     let sum = 0;
     d.items.forEach((it) => {
       if (it.price) { const s = Math.round(it.qty * it.price); sum += s; L.push(`• ${it.title} — ${qtyText(it.qty, it.unit)} × ${money(it.price)} = ${money(s)} грн`); }
@@ -315,8 +429,10 @@
       else L.push(`+ ${x.title} — ${x.qty} шт`);
     });
     L.push('');
-    if (sum) L.push(`💰 Орієнтовно: ${money(sum)} грн`);
-    L.push(`⏰ Забере: ${d.when}`, `👤 ${d.name}`, `📞 ${d.phone}`);
+    if (isDel) L.push(`📍 Адреса: ${d.address}`);
+    if (sum && d.delivery_price) L.push(`💰 Орієнтовно: ${money(sum + d.delivery_price)} грн (замовлення ${money(sum)} + доставка ${money(d.delivery_price)})`);
+    else if (sum) L.push(`💰 Орієнтовно: ${money(sum)} грн`);
+    L.push(`⏰ ${isDel ? 'Доставити' : 'Забере'}: ${d.when}`, `👤 ${d.name}`, `📞 ${d.phone}`);
     if (d.comment) L.push(`💬 ${d.comment}`);
     return L.join('\n');
   }
@@ -327,11 +443,13 @@
     if (dlg.open) return;
     showForm();
     hideErr();
+    setupMode();
     renderDialog();
     setupWhen();
     const me = ls.get(KEY_ME) || {};
     if (me.name && !$('#od-name').value) $('#od-name').value = me.name;
-    if (me.phone && !$('#od-phone').value) $('#od-phone').value = me.phone;
+    if (me.phone && !$('#od-phone').value) $('#od-phone').value = formatPhone(me.phone);
+    if (me.address && !$('#od-addr').value) $('#od-addr').value = me.address;
     document.documentElement.classList.add('modal-open');
     dlg.showModal();
   }
@@ -362,10 +480,23 @@
       document.documentElement.classList.remove('modal-open');
       if (!$('#od-done').hidden) showForm();
     });
+    $('#od-mode').addEventListener('change', () => {
+      hideErr();
+      setupMode();
+      setupWhen();
+      renderDialog();
+      if (getMode() === 'delivery' && !$('#od-addr').value) $('#od-addr').focus();
+    });
     $('#od-chips').addEventListener('change', () => {
       const t = $('#od-time');
       t.hidden = choice() !== 'time';
       if (!t.hidden) t.focus();
+    });
+    wirePhone();
+    // помилка внизу зникає, щойно людина почала виправляти поле, про яке вона
+    form.addEventListener('input', (e) => {
+      const f = $('#od-err').dataset.field;
+      if (f && e.target.matches(f)) hideErr();
     });
     form.addEventListener('submit', submit);
   }
@@ -374,6 +505,7 @@
   function init(c) {
     C = c || null;
     cfg = (C && C.order) || {};
+    dcfg = (C && C.delivery) || {};
     const on = DEMO || !!(cfg.enabled && cfg.endpoint);
     $$('[data-order-on]').forEach((el) => { el.hidden = !on; });
     $$('[data-order-off]').forEach((el) => { el.hidden = on; });

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BBQ Renamax — ТІР-бочка на 339 км Київ–Чоп | смачне м'ясо, гарячі емоції</title>
-<meta name="description" content="BBQ Renamax — м'ясо з бочки-смокера на 339 км траси Київ–Чоп (Велика Омеляна, Рівне). Ребра, шия, шашлик, індик. Щодня 10:00–19:00. Замовлення: 068 642 77 77.">
+<meta name="description" content="BBQ Renamax — м'ясо з бочки-смокера на 339 км траси Київ–Чоп (Велика Омеляна, Рівне). Ребра, шия, шашлик, індик. Щодня 11:00–19:30. Самовивіз за передзамовленням і доставка по місту — 200 грн. Замовлення: 068 642 77 77.">
 <meta property="og:title" content="BBQ Renamax — смачне м'ясо, гарячі емоції">
 <meta property="og:description" content="ТІР-бочка на 339 км Київ–Чоп. Ребра, шашлик, ковбаса з димком. Щодня 10:00–19:00. Замовте наперед: 068 642 77 77.">
 <meta property="og:image" content="https://webrenamax-lgtm.github.io/bbq-renamax/img/logo.jpg">
@@ -27,7 +27,7 @@
   "address": { "@type": "PostalAddress", "streetAddress": "вул. П'ятихатки, 5 (339 км траси Київ–Чоп)", "addressLocality": "Велика Омеляна", "addressRegion": "Рівненська область", "postalCode": "35360", "addressCountry": "UA" },
   "telephone": "+380686427777",
   "servesCuisine": "Barbecue",
-  "openingHours": "Mo-Su 10:00-19:00",
+  "openingHours": "Mo-Su 11:00-19:30",
   "sameAs": ["https://www.tiktok.com/@bbq.renamax"],
   "url": "https://maps.app.goo.gl/AgvRauNDEr749xNz9"
 }
@@ -212,8 +212,23 @@
   .od-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:18px;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.04em}
   .od-total b{font-size:26px;color:var(--orange)}
   .od-note{margin-top:4px;font-size:13px;color:var(--mute)}
-  .od-when{border:0;min-width:0;margin-top:26px}
-  .od-when legend.od-sec{margin:0 0 10px}
+  .od-fs{border:0;min-width:0;margin-top:26px}
+  .od-fs legend.od-sec{margin:0 0 10px}
+  .od-hint{margin-top:10px;font-size:13px;color:var(--mute)}
+  .od-fhint{margin-top:6px;font-size:12px;color:var(--mute)}
+  .od-fhint.bad{color:var(--orange-hot);font-weight:600}
+  .od-fee{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:16px;font-size:15px}
+  .od-fee b{font-family:'Oswald',sans-serif;font-weight:600;font-size:18px;letter-spacing:.03em}
+  .od-fee + .od-total{margin-top:6px}
+
+  /* ===== самовивіз і доставка ===== */
+  .getit{background:var(--coal);padding-top:10px}
+  .getit-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:34px}
+  .gi-card{background:var(--black);border:1px solid var(--line);border-top:3px solid var(--orange);padding:28px 26px}
+  .gi-card h3{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:18px}
+  .gi-card .gi-big{font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(34px,5vw,46px);line-height:1.05;color:var(--orange);margin:10px 0 12px}
+  .gi-card p:not(.gi-big){font-size:15px;color:var(--mute)}
+  @media(max-width:760px){.getit-grid{grid-template-columns:1fr}}
   .od-closed{font-size:14px;margin-bottom:10px}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chips label{position:relative;cursor:pointer}
@@ -289,7 +304,7 @@
           <a class="btn btn-o" data-href="tel:{contacts.phone}" href="tel:+380686427777" data-order-off><em>Замовити наперед</em></a>
           <a class="btn btn-g" href="#menu" data-order-off><em>Меню</em></a>
         </div>
-        <p class="facts"><span>Щодня <b>10:00–19:00</b></span><span>З собою · гарячим</span><span>Місце для фур і авто</span></p>
+        <p class="facts"><span><span data-key="hours.0.days">Щодня</span> <b data-key="hours.0.time">11:00 – 19:30</b></span><span>Самовивіз за передзамовленням</span><span data-show="delivery.enabled" data-tpl="Доставка {delivery.area} — {delivery.price}">Доставка по місту — 200 грн</span></p>
       </div>
     </div>
   </div>
@@ -329,6 +344,24 @@
         </div>
       </div>
       <p class="menu-note">Наявність позицій залежить від дня — уточнюйте за телефоном.</p>
+    </div>
+  </section>
+
+  <section class="getit" id="dostavka">
+    <div class="wrap">
+      <h2><span class="mark"><em>Самовивіз і доставка</em></span></h2>
+      <div class="getit-grid">
+        <div class="gi-card">
+          <h3>Самовивіз за передзамовленням</h3>
+          <p class="gi-big">Без черги</p>
+          <p data-order-text="Замовте на сайті або подзвоніть — приготуємо до вашого приїзду, і ви одразу заберете гаряче. 339 км траси Київ–Чоп, Велика Омеляна.">Подзвоніть заздалегідь — приготуємо до вашого приїзду, і ви одразу заберете гаряче. 339 км траси Київ–Чоп, Велика Омеляна.</p>
+        </div>
+        <div class="gi-card" data-show="delivery.enabled">
+          <h3 data-tpl="Доставка {delivery.area}">Доставка по місту</h3>
+          <p class="gi-big" data-key="delivery.price">200 грн</p>
+          <p data-order-text="Привеземо гарячим додому чи на роботу. Оберіть «Доставка», коли оформлюєте замовлення, або подзвоніть.">Привеземо гарячим додому чи на роботу. Замовляйте по телефону.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -410,11 +443,25 @@
         <h3 class="od-sec">Додатки</h3>
         <ul class="od-list" id="od-extras"></ul>
       </div>
+      <p class="od-fee" id="od-fee-row" hidden><span>Доставка</span><b id="od-fee">200 грн</b></p>
       <p class="od-total"><span>Орієнтовно</span><b id="od-sum">0 грн</b></p>
       <p class="od-note" data-key="order.note">М'ясо зважуємо при видачі, тож сума орієнтовна. Після замовлення передзвонимо для підтвердження.</p>
 
-      <fieldset class="od-when">
-        <legend class="od-sec">Коли заберете?</legend>
+      <fieldset class="od-fs" id="od-mode">
+        <legend class="od-sec">Як отримати?</legend>
+        <div class="chips">
+          <label><input type="radio" name="mode" value="pickup" checked><span>Самовивіз</span></label>
+          <label><input type="radio" name="mode" value="delivery"><span id="od-mode-del">Доставка · 200 грн</span></label>
+        </div>
+        <p class="od-hint" id="od-mode-hint">Передзамовлення: приготуємо до вашого приїзду — заберете гарячим без очікування.</p>
+        <div id="od-addr-wrap" hidden>
+          <label class="od-f" for="od-addr">Адреса доставки</label>
+          <input class="od-input" id="od-addr" autocomplete="street-address" maxlength="200" placeholder="Вулиця, будинок, під'їзд, квартира">
+        </div>
+      </fieldset>
+
+      <fieldset class="od-fs od-when">
+        <legend class="od-sec" id="od-when-legend">Коли заберете?</legend>
         <p class="od-closed" id="od-closed" hidden></p>
         <div class="chips" id="od-chips">
           <label><input type="radio" name="when" value="asap" checked><span>Якнайшвидше</span></label>
@@ -428,7 +475,8 @@
       <label class="od-f" for="od-name">Ім'я</label>
       <input class="od-input" id="od-name" autocomplete="name" maxlength="60" required>
       <label class="od-f" for="od-phone">Телефон</label>
-      <input class="od-input" id="od-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="+380 __ ___ __ __" required>
+      <input class="od-input" id="od-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="+380 __ ___ __ __" required aria-describedby="od-phone-hint">
+      <p class="od-fhint" id="od-phone-hint">Формат: +380 67 123 45 67. Іноземний номер — з «+» і кодом країни.</p>
       <label class="od-f" for="od-comment">Коментар <i>— необов'язково</i></label>
       <textarea class="od-input" id="od-comment" rows="2" maxlength="500" placeholder="Напр.: без цибулі, ребро шматком"></textarea>
       <div class="hp" aria-hidden="true"><input id="od-hp" name="company_site" tabindex="-1" autocomplete="off"></div>
@@ -453,7 +501,7 @@
   </div>
 </dialog>
 
-<script src="content.js?v=2"></script>
-<script src="order.js?v=1"></script>
+<script src="content.js?v=3"></script>
+<script src="order.js?v=2"></script>
 </body>
 </html>

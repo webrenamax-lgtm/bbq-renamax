@@ -86,11 +86,19 @@ function clean(d) {
     .map((it) => ({ title: str(it?.title, 80), qty: Math.round(num(it?.qty, 0, 50)), price: num(it?.price, 0, 100000) }))
     .filter((it) => it.title && it.qty > 0);
 
+  // спосіб отримання: самовивіз або доставка (старі версії сайту поле не надсилають)
+  const mode = d.mode === 'delivery' ? 'delivery' : d.mode === 'pickup' ? 'pickup' : '';
+  const address = str(d.address, 200);
+  if (mode === 'delivery' && address.length < 5) return { error: 'address' };
+
   return {
     name,
     phone: phone(String(d.phone), digits),
     items,
     extras,
+    mode,
+    address: mode === 'delivery' ? address : '',
+    deliveryPrice: mode === 'delivery' ? num(d.delivery_price, 0, 10000) : 0,
     when: str(d.when, 80) || 'не вказано',
     comment: str(d.comment, 500),
   };
@@ -112,7 +120,8 @@ function phone(raw, d) {
 /* ---------- повідомлення ---------- */
 
 function format(o, id) {
-  const L = [`🔥 <b>Нове замовлення #${id}</b>`, ''];
+  const tag = o.mode === 'delivery' ? ' — 🚚 доставка' : o.mode === 'pickup' ? ' — 🚶 самовивіз' : '';
+  const L = [`🔥 <b>Нове замовлення #${id}</b>${tag}`, ''];
   let sum = 0;
   let unpriced = false;
   for (const it of o.items) {
@@ -137,8 +146,16 @@ function format(o, id) {
     }
   }
   L.push('');
-  if (sum > 0) L.push(`💰 Орієнтовно: <b>${money(sum)} грн</b>${unpriced ? ' + позиції без ціни' : ''}`);
-  L.push(`⏰ Забере: ${esc(o.when)}`);
+  if (o.mode === 'delivery') L.push(`📍 Адреса: ${esc(o.address)}`);
+  const rest = unpriced ? ' + позиції без ціни' : '';
+  if (o.deliveryPrice > 0 && sum > 0) {
+    L.push(`💰 Орієнтовно: <b>${money(sum + o.deliveryPrice)} грн</b> (замовлення ${money(sum)} + доставка ${money(o.deliveryPrice)})${rest}`);
+  } else if (o.deliveryPrice > 0) {
+    L.push(`💰 Доставка: ${money(o.deliveryPrice)} грн${rest}`);
+  } else if (sum > 0) {
+    L.push(`💰 Орієнтовно: <b>${money(sum)} грн</b>${rest}`);
+  }
+  L.push(`⏰ ${o.mode === 'delivery' ? 'Доставити' : 'Забере'}: ${esc(o.when)}`);
   L.push(`👤 ${esc(o.name)}`);
   L.push(`📞 ${esc(o.phone)}`);
   if (o.comment) L.push(`💬 ${esc(o.comment)}`);

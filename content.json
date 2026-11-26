@@ -127,6 +127,11 @@
       "title": "Помідори квашені"
     }
   ],
+  "delivery": {
+    "enabled": true,
+    "area": "по місту",
+    "price": "200 грн"
+  },
   "order": {
     "enabled": true,
     "endpoint": "https://bbq-renamax-orders.web-renamax.workers.dev/",
